@@ -2,14 +2,14 @@
 
 import { useState } from 'react'
 import { obterClienteNavegador } from '@/lib/supabase-navegador'
-import { CATEGORIAS, SEXOS, type Criador } from '@/types'
+import { CATEGORIAS, SEXOS } from '@/types'
 
 interface Props {
-  criadores: Pick<Criador, 'id' | 'nome_fazenda' | 'nome_completo'>[]
+  criadorId: string
+  criadorUserId: string
 }
 
-export default function FormularioAnimal({ criadores }: Props) {
-  const [criadorId, setCriadorId] = useState('')
+export default function FormularioAnimal({ criadorId, criadorUserId }: Props) {
   const [nomeAnimal, setNomeAnimal] = useState('')
   const [sexo, setSexo] = useState('')
   const [categoria, setCategoria] = useState('')
@@ -65,6 +65,7 @@ export default function FormularioAnimal({ criadores }: Props) {
     const supabase = obterClienteNavegador()
     const payload = {
       criador_id: criadorId,
+      criador_user_id: criadorUserId,
       nome_animal: nomeAnimal,
       sexo,
       categoria,
@@ -132,23 +133,6 @@ export default function FormularioAnimal({ criadores }: Props) {
 
   return (
     <form onSubmit={enviar} className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
-      <div>
-        <label className={labelCls}>Criador *</label>
-        <select
-          value={criadorId}
-          onChange={(e) => setCriadorId(e.target.value)}
-          required
-          className={inputCls}
-        >
-          <option value="">Selecione o criador</option>
-          {criadores.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nome_fazenda} — {c.nome_completo}
-            </option>
-          ))}
-        </select>
-      </div>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
           <label className={labelCls}>Nome do animal *</label>

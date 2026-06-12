@@ -4,11 +4,13 @@ import type { Animal, Criador } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL
+
 async function alternarAtivo(formData: FormData) {
   'use server'
   const id = formData.get('id') as string
   const ativoAtual = formData.get('ativo') === 'true'
-  const supabase = criarClienteServidor()
+  const supabase = await criarClienteServidor()
   await supabase.from('animais').update({ ativo: !ativoAtual }).eq('id', id)
   revalidatePath('/admin')
 }
@@ -17,13 +19,27 @@ async function alternarDestaque(formData: FormData) {
   'use server'
   const id = formData.get('id') as string
   const destaqueAtual = formData.get('destaque') === 'true'
-  const supabase = criarClienteServidor()
+  const supabase = await criarClienteServidor()
   await supabase.from('animais').update({ destaque: !destaqueAtual }).eq('id', id)
   revalidatePath('/admin')
 }
 
 export default async function PaginaAdmin() {
-  const supabase = criarClienteServidor()
+  const supabase = await criarClienteServidor()
+
+  // Proteção: somente o email admin tem acesso
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || (ADMIN_EMAIL && user.email !== ADMIN_EMAIL)) {
+    return (
+      <div className="min-h-screen bg-bege flex items-center justify-center">
+        <div className="bg-white rounded-2xl p-8 shadow-sm text-center max-w-sm">
+          <p className="text-4xl mb-4">🔒</p>
+          <h1 className="font-serif text-xl font-bold text-texto mb-2">Acesso restrito</h1>
+          <p className="text-gray-500 text-sm">Esta área é exclusiva para administradores.</p>
+        </div>
+      </div>
+    )
+  }
 
   const [{ data: animaisBrutos }, { data: criadoresBrutos }] = await Promise.all([
     supabase

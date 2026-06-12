@@ -18,7 +18,7 @@ export default async function PaginaHome({
   const filtros = await searchParams
   const { sexo = '', categoria = '', estado = '', busca = '' } = filtros
 
-  const supabase = criarClienteServidor()
+  const supabase = await criarClienteServidor()
   const { data: animaisBrutos } = await supabase
     .from('animais')
     .select('*, criadores(nome_fazenda, estado, cidade, telefone, whatsapp, email, nome_completo)')

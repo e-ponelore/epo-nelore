@@ -23,7 +23,7 @@ export default async function PaginaAnimal({
 }) {
   const { id } = await params
 
-  const supabase = criarClienteServidor()
+  const supabase = await criarClienteServidor()
   const { data } = await supabase
     .from('animais')
     .select('*, criadores(*)')

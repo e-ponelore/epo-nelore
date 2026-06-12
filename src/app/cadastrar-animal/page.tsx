@@ -1,7 +1,8 @@
+import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { criarClienteServidor } from '@/lib/supabase-servidor'
 import FormularioAnimal from './FormularioAnimal'
-import type { Criador } from '@/types'
+import type { Perfil } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,11 +12,26 @@ export const metadata: Metadata = {
 }
 
 export default async function PaginaCadastrarAnimal() {
-  const supabase = criarClienteServidor()
-  const { data: criadores } = await supabase
-    .from('criadores')
-    .select('id, nome_fazenda, nome_completo')
-    .order('nome_fazenda')
+  const supabase = await criarClienteServidor()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) redirect('/login?redirecionar=/cadastrar-animal')
+
+  // Buscar criador_id do perfil do usuário logado
+  const { data: perfilBruto } = await supabase
+    .from('perfis')
+    .select('criador_id, nome_fazenda')
+    .eq('id', user.id)
+    .single()
+
+  const perfil = perfilBruto as Pick<Perfil, 'criador_id' | 'nome_fazenda'> | null
+
+  if (!perfil?.criador_id) {
+    redirect('/perfil?aba=conta&aviso=complete-perfil')
+  }
 
   return (
     <div className="bg-bege min-h-screen py-12">
@@ -27,8 +43,16 @@ export default async function PaginaCadastrarAnimal() {
           <p className="text-gray-600">
             Preencha os dados do animal. Campos marcados com * são obrigatórios.
           </p>
+          {perfil.nome_fazenda && (
+            <p className="text-sm text-verde-escuro font-medium mt-1">
+              Fazenda: {perfil.nome_fazenda}
+            </p>
+          )}
         </div>
-        <FormularioAnimal criadores={(criadores as Criador[]) ?? []} />
+        <FormularioAnimal
+          criadorId={perfil.criador_id}
+          criadorUserId={user.id}
+        />
       </div>
     </div>
   )
