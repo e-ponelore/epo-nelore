@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest) {
     },
   )
 
-  // Renova a sessão a cada request (obrigatório para @supabase/ssr)
+  // Renova a sessão a cada request
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -33,7 +33,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Rotas que exigem login
-  const rotasProtegidas = ['/perfil', '/cadastrar-animal']
+  const rotasProtegidas = ['/app', '/perfil', '/cadastrar-animal']
   const precisaLogin = rotasProtegidas.some((rota) => pathname.startsWith(rota))
 
   if (!user && precisaLogin) {
@@ -43,10 +43,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redireciona usuário logado que tenta acessar login/cadastro
+  // Usuário logado tentando acessar login/cadastro → manda para o app
   if (user && (pathname === '/login' || pathname === '/cadastro')) {
     const url = request.nextUrl.clone()
-    url.pathname = '/perfil'
+    url.pathname = '/app/anuncios'
     return NextResponse.redirect(url)
   }
 
@@ -59,5 +59,4 @@ export const config = {
   ],
 }
 
-// Alias para compatibilidade
 export { proxy as middleware }

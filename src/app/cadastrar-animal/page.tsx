@@ -2,56 +2,63 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { criarClienteServidor } from '@/lib/supabase-servidor'
 import FormularioAnimal from './FormularioAnimal'
-import type { Perfil } from '@/types'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Cadastrar Animal — e-PO Nelore',
-  description: 'Cadastre seus bovinos Nelore P.O. na vitrine.',
+  title: 'Novo Animal — e-PO Nelore',
 }
 
 export default async function PaginaCadastrarAnimal() {
   const supabase = await criarClienteServidor()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?redirecionar=/cadastrar-animal')
 
-  // Buscar criador_id do perfil do usuário logado
-  const { data: perfilBruto } = await supabase
+  // Buscar perfil completo
+  const { data: perfil } = await supabase
     .from('perfis')
-    .select('criador_id, nome_fazenda')
+    .select('criador_id, nome_completo, nome_fazenda, estado, cidade, telefone, whatsapp')
     .eq('id', user.id)
     .single()
 
-  const perfil = perfilBruto as Pick<Perfil, 'criador_id' | 'nome_fazenda'> | null
+  let criadorId = perfil?.criador_id ?? null
 
-  if (!perfil?.criador_id) {
-    redirect('/perfil?aba=conta&aviso=complete-perfil')
+  // Se não tem criador_id, cria o registro agora usando os dados do perfil
+  if (!criadorId && perfil?.nome_fazenda) {
+    const { data: novoCriador } = await supabase
+      .from('criadores')
+      .insert({
+        nome_completo: perfil.nome_completo || '',
+        nome_fazenda:  perfil.nome_fazenda  || '',
+        estado:        perfil.estado        || '',
+        cidade:        perfil.cidade        || '',
+        telefone:      perfil.telefone      || '',
+        whatsapp:      perfil.whatsapp      || '',
+        email:         user.email           || '',
+      })
+      .select('id')
+      .single()
+
+    if (novoCriador) {
+      criadorId = novoCriador.id
+      await supabase.from('perfis').update({ criador_id: criadorId }).eq('id', user.id)
+    }
+  }
+
+  // Se mesmo assim não tem dados suficientes, manda completar o cadastro
+  if (!criadorId) {
+    redirect('/cadastro?aviso=complete-perfil')
   }
 
   return (
-    <div className="bg-bege min-h-screen py-12">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-8">
-          <h1 className="font-serif text-3xl font-bold text-texto mb-2">
-            Cadastrar Animal
-          </h1>
-          <p className="text-gray-600">
-            Preencha os dados do animal. Campos marcados com * são obrigatórios.
-          </p>
-          {perfil.nome_fazenda && (
-            <p className="text-sm text-verde-escuro font-medium mt-1">
-              Fazenda: {perfil.nome_fazenda}
-            </p>
-          )}
-        </div>
+    <div className="relative min-h-screen bg-verde-escuro">
+      <div className="tech-grid pointer-events-none fixed inset-0 z-0" />
+      <div className="relative z-10">
         <FormularioAnimal
-          criadorId={perfil.criador_id}
+          criadorId={criadorId}
           criadorUserId={user.id}
+          nomeFazenda={perfil?.nome_fazenda ?? ''}
         />
       </div>
     </div>

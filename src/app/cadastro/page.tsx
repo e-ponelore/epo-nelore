@@ -3,28 +3,28 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { obterClienteNavegador } from '@/lib/supabase-navegador'
 import { ESTADOS_BR } from '@/types'
+
+const inputCls =
+  'w-full bg-white border border-black/10 rounded-lg px-4 py-3.5 text-sm text-texto placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-verde-claro focus:border-verde-claro transition-all duration-200'
+const labelCls = 'block text-[10px] font-bold text-gray-400 uppercase tracking-[0.18em] mb-2'
 
 export default function PaginaCadastro() {
   const router = useRouter()
 
-  const [nomeCompleto, setNomeCompleto] = useState('')
-  const [nomeFazenda, setNomeFazenda] = useState('')
-  const [estado, setEstado] = useState('')
-  const [cidade, setCidade] = useState('')
-  const [telefone, setTelefone] = useState('')
-  const [whatsapp, setWhatsapp] = useState('')
-  const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
+  const [nomeCompleto, setNomeCompleto]     = useState('')
+  const [nomeFazenda, setNomeFazenda]       = useState('')
+  const [estado, setEstado]                 = useState('')
+  const [cidade, setCidade]                 = useState('')
+  const [telefone, setTelefone]             = useState('')
+  const [whatsapp, setWhatsapp]             = useState('')
+  const [email, setEmail]                   = useState('')
+  const [senha, setSenha]                   = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
-  const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState('')
-
-  const inputCls =
-    'w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-verde-escuro/30 focus:border-verde-escuro transition-colors'
-  const labelCls =
-    'block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5'
+  const [carregando, setCarregando]         = useState(false)
+  const [erro, setErro]                     = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,7 +42,6 @@ export default function PaginaCadastro() {
     setCarregando(true)
     const supabase = obterClienteNavegador()
 
-    // 1. Criar conta no Supabase Auth
     const { data: authData, error: authErro } = await supabase.auth.signUp({
       email,
       password: senha,
@@ -65,18 +64,9 @@ export default function PaginaCadastro() {
       return
     }
 
-    // 2. Criar registro na tabela criadores
     const { data: criador, error: criadorErro } = await supabase
       .from('criadores')
-      .insert({
-        nome_completo: nomeCompleto,
-        nome_fazenda: nomeFazenda,
-        estado,
-        cidade,
-        telefone,
-        whatsapp,
-        email,
-      })
+      .insert({ nome_completo: nomeCompleto, nome_fazenda: nomeFazenda, estado, cidade, telefone, whatsapp, email })
       .select('id')
       .single()
 
@@ -86,201 +76,122 @@ export default function PaginaCadastro() {
       return
     }
 
-    // 3. Inserir perfil diretamente (sem depender de trigger)
     await supabase
       .from('perfis')
-      .insert({
-        id: userId,
-        criador_id: criador.id,
-        nome_completo: nomeCompleto,
-        nome_fazenda: nomeFazenda,
-        estado,
-        cidade,
-        telefone,
-        whatsapp,
-      })
+      .insert({ id: userId, criador_id: criador.id, nome_completo: nomeCompleto, nome_fazenda: nomeFazenda, estado, cidade, telefone, whatsapp })
 
-    router.push('/perfil')
+    // Marca que este navegador já tem uma conta
+    localStorage.setItem('epo_ja_cadastrado', 'true')
+
+    router.push('/app/anuncios')
     router.refresh()
   }
 
   return (
-    <div className="min-h-screen bg-bege flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen bg-verde-escuro flex flex-col items-center justify-center px-6 py-12 relative">
+      <div className="tech-grid pointer-events-none fixed inset-0" />
+      <div className="relative w-full max-w-md">
+
         {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <h1 className="font-serif text-3xl font-bold text-verde-escuro">
-              e-PO Nelore
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">Vitrine de Nelore Puro de Origem</p>
-          </Link>
-        </div>
+        <Link href="/" className="flex flex-col items-center gap-3 mb-8">
+          <div className="logo-glow w-16 h-16 rounded-2xl overflow-hidden ring-1 ring-verde-claro/20">
+            <Image
+              src="/logo.png.jpeg"
+              alt="e-PO Nelore"
+              width={64}
+              height={64}
+              className="w-full h-full object-cover"
+              priority
+            />
+          </div>
+          <span className="font-serif text-xl font-bold text-white tracking-tight">
+            e-PO Nelore
+          </span>
+        </Link>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-          <h2 className="font-serif text-2xl font-bold text-texto mb-1">
-            Criar conta de criador
-          </h2>
-          <p className="text-gray-500 text-sm mb-6">
-            Cadastre sua fazenda e comece a anunciar seus animais
-          </p>
+        <div className="bg-white rounded-2xl shadow-2xl p-7">
+          <h2 className="font-serif text-2xl font-bold text-texto mb-1">Criar conta</h2>
+          <p className="text-gray-400 text-sm mb-6">Cadastre sua fazenda e comece a anunciar</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Dados pessoais */}
             <div>
               <label className={labelCls}>Nome completo *</label>
-              <input
-                type="text"
-                value={nomeCompleto}
-                onChange={(e) => setNomeCompleto(e.target.value)}
-                required
-                className={inputCls}
-                placeholder="João da Silva"
-              />
+              <input type="text" value={nomeCompleto} onChange={(e) => setNomeCompleto(e.target.value)} required className={inputCls} placeholder="João da Silva" />
             </div>
 
             <div>
               <label className={labelCls}>Nome da fazenda *</label>
-              <input
-                type="text"
-                value={nomeFazenda}
-                onChange={(e) => setNomeFazenda(e.target.value)}
-                required
-                className={inputCls}
-                placeholder="Fazenda Boa Vista"
-              />
+              <input type="text" value={nomeFazenda} onChange={(e) => setNomeFazenda(e.target.value)} required className={inputCls} placeholder="Fazenda Boa Vista" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Estado *</label>
-                <select
-                  value={estado}
-                  onChange={(e) => setEstado(e.target.value)}
-                  required
-                  className={inputCls}
-                >
-                  <option value="">Selecione</option>
-                  {ESTADOS_BR.map((uf) => (
-                    <option key={uf} value={uf}>
-                      {uf}
-                    </option>
-                  ))}
+                <select value={estado} onChange={(e) => setEstado(e.target.value)} required className={inputCls}>
+                  <option value="">UF</option>
+                  {ESTADOS_BR.map((uf) => <option key={uf} value={uf}>{uf}</option>)}
                 </select>
               </div>
               <div>
                 <label className={labelCls}>Cidade *</label>
-                <input
-                  type="text"
-                  value={cidade}
-                  onChange={(e) => setCidade(e.target.value)}
-                  required
-                  className={inputCls}
-                  placeholder="Uberaba"
-                />
+                <input type="text" value={cidade} onChange={(e) => setCidade(e.target.value)} required className={inputCls} placeholder="Uberaba" />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelCls}>Telefone *</label>
-                <input
-                  type="tel"
-                  value={telefone}
-                  onChange={(e) => setTelefone(e.target.value)}
-                  required
-                  className={inputCls}
-                  placeholder="(34) 99999-9999"
-                />
+                <label className={labelCls}>Telefone</label>
+                <input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} className={inputCls} placeholder="(34) 99999-9999" />
               </div>
               <div>
                 <label className={labelCls}>WhatsApp *</label>
-                <input
-                  type="tel"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  required
-                  className={inputCls}
-                  placeholder="(34) 99999-9999"
-                />
+                <input type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required className={inputCls} placeholder="(34) 99999-9999" />
               </div>
             </div>
 
-            <hr className="border-gray-100" />
+            <hr className="border-black/5 my-1" />
 
-            {/* Acesso */}
             <div>
               <label className={labelCls}>E-mail *</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className={inputCls}
-                placeholder="seu@email.com"
-              />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className={inputCls} placeholder="seu@email.com" />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Senha *</label>
-                <input
-                  type="password"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  className={inputCls}
-                  placeholder="Mínimo 6 caracteres"
-                />
+                <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required autoComplete="new-password" className={inputCls} placeholder="Mín. 6 chars" />
               </div>
               <div>
-                <label className={labelCls}>Confirmar senha *</label>
-                <input
-                  type="password"
-                  value={confirmarSenha}
-                  onChange={(e) => setConfirmarSenha(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  className={inputCls}
-                  placeholder="••••••••"
-                />
+                <label className={labelCls}>Confirmar *</label>
+                <input type="password" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} required autoComplete="new-password" className={inputCls} placeholder="••••••••" />
               </div>
             </div>
 
             {erro && (
-              <p className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3 border border-red-100">
-                {erro}
-              </p>
+              <p className="text-red-500 text-sm bg-red-50 rounded-xl px-4 py-3">{erro}</p>
             )}
 
             <button
               type="submit"
               disabled={carregando}
-              className="w-full bg-verde-escuro text-white font-semibold py-3 rounded-xl hover:bg-verde-escuro/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+              className="w-full bg-verde-escuro text-verde-claro font-black uppercase tracking-wider text-sm py-4 rounded-lg hover:brightness-110 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 mt-2 shadow-lg shadow-verde-escuro/20"
             >
               {carregando ? 'Criando conta...' : 'Criar conta'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
+          <p className="text-center text-sm text-gray-400 mt-6">
             Já tem conta?{' '}
-            <Link
-              href="/login"
-              className="text-verde-escuro font-semibold hover:underline"
-            >
+            <Link href="/login" className="font-bold text-verde-escuro hover:underline">
               Entrar
             </Link>
           </p>
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-6">
-          <Link href="/" className="hover:text-verde-escuro transition-colors">
-            ← Voltar para a vitrine
-          </Link>
-        </p>
+        <Link href="/" className="block text-center text-white/30 hover:text-white/60 text-xs mt-6 transition-colors duration-200">
+          ← Voltar
+        </Link>
       </div>
     </div>
   )

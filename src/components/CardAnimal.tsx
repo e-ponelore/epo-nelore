@@ -12,73 +12,71 @@ export default function CardAnimal({ animal }: Props) {
   const fotoUrl = animal.fotos?.[0]
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col">
-      <div className="relative h-52 bg-gray-100">
+    <Link
+      href={`/animal/${animal.id}`}
+      className="group bg-white rounded-xl overflow-hidden border border-black/5 shadow-lg shadow-black/25 hover:shadow-xl hover:-translate-y-1 active:scale-[0.97] transition-all duration-300 flex flex-col"
+    >
+      {/* Foto */}
+      <div className="relative h-40 bg-gray-100 overflow-hidden">
         {fotoUrl ? (
           <Image
             src={fotoUrl}
             alt={animal.nome_animal}
             fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-12 w-12 mb-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <span className="text-xs">Sem foto</span>
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-verde-escuro/5 to-verde-escuro/10">
+            <span className="text-3xl mb-1">🐄</span>
+            <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">Sem foto</span>
           </div>
         )}
 
-        <div className="absolute top-3 left-3 flex gap-1.5">
+        {/* Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
           {animal.destaque && (
-            <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
-              Destaque
+            <span className="bg-yellow-400 text-yellow-900 text-[9px] font-black px-1.5 py-0.5 rounded tracking-wide">
+              ★ DESTAQUE
             </span>
           )}
-          <span className="bg-verde-claro text-verde-escuro text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
-            P.O.
+          <span className="bg-verde-escuro text-verde-claro text-[9px] font-black px-1.5 py-0.5 rounded tracking-wide flex items-center gap-1">
+            ✦ P.O. CERTIFICADO
           </span>
         </div>
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-serif font-bold text-lg text-texto leading-tight">
+      {/* Info */}
+      <div className="p-3 flex flex-col flex-1">
+        <h3 className="font-serif font-bold text-sm text-texto leading-tight line-clamp-1">
           {animal.nome_animal}
         </h3>
 
-        <p className="text-gray-500 text-sm mt-1">
-          {animal.categoria} · {animal.sexo}
-          {animal.peso_kg ? ` · ${animal.peso_kg} kg` : ''}
+        <p className="text-gray-400 text-[11px] mt-1 flex items-center gap-1.5 flex-wrap">
+          <span>{animal.categoria}</span>
+          <span className="text-gray-200">·</span>
+          <span>{animal.sexo}</span>
         </p>
 
+        {animal.peso_kg ? (
+          <p className="mt-1.5 text-texto">
+            <span className="font-black text-base tabular-nums">{animal.peso_kg}</span>
+            <span className="text-gray-400 text-[10px] font-bold ml-0.5 uppercase">kg</span>
+          </p>
+        ) : null}
+
         {animal.criadores?.estado && (
-          <p className="text-gray-400 text-xs mt-0.5">
-            {animal.criadores.nome_fazenda} — {animal.criadores.estado}
+          <p className="text-gray-300 text-[10px] mt-0.5 truncate uppercase tracking-wide">
+            {animal.criadores.nome_fazenda} · {animal.criadores.estado}
           </p>
         )}
 
-        <div className="mt-auto pt-4">
-          <Link
-            href={`/animal/${animal.id}`}
-            className="block text-center bg-verde-escuro text-white text-sm font-semibold py-2 rounded-lg hover:bg-verde-escuro/90 transition-colors"
-          >
-            Ver ficha completa
-          </Link>
+        <div className="mt-auto pt-3">
+          <div className="text-center bg-verde-escuro text-verde-claro text-[11px] font-black uppercase tracking-wider py-2 rounded-lg group-hover:brightness-110 transition-all duration-200">
+            Ver ficha →
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

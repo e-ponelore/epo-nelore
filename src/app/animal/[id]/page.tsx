@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
 import { criarClienteServidor } from '@/lib/supabase-servidor'
 import GaleriaFotos from '@/components/GaleriaFotos'
 import BlocoContato from '@/components/BlocoContato'
@@ -55,30 +56,42 @@ export default async function PaginaAnimal({
   )
 
   return (
-    <div className="bg-bege min-h-screen py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="mb-6 flex items-center gap-2 text-sm text-gray-400">
-          <a href="/" className="hover:text-verde-escuro transition-colors">
-            Vitrine
-          </a>
-          <span>/</span>
-          <span className="text-texto">{animal.nome_animal}</span>
+    <div className="bg-verde-escuro min-h-screen relative">
+      <div className="tech-grid pointer-events-none fixed inset-0 z-0" />
+      {/* Mini header com voltar e logo */}
+      <div className="relative z-40 bg-verde-escuro/90 backdrop-blur-xl px-4 py-3.5 flex items-center gap-3 sticky top-0 border-b border-white/10">
+        <a
+          href="/app/vitrine"
+          className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 hover:bg-verde-claro/20 active:scale-95 transition-all duration-200 flex-shrink-0"
+          aria-label="Voltar para a vitrine"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-4 h-4 text-white">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </a>
+        <span className="font-serif font-bold text-white truncate flex-1">{animal.nome_animal}</span>
+        <div className="w-7 h-7 rounded-lg overflow-hidden opacity-50 ring-1 ring-white/10 flex-shrink-0">
+          <Image src="/logo.png.jpeg" alt="e-PO Nelore" width={28} height={28} className="w-full h-full object-cover" />
         </div>
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-6">
+        <div>
 
         <GaleriaFotos fotos={animal.fotos ?? []} nome={animal.nome_animal} />
 
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl p-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-white rounded-xl p-6 shadow-xl shadow-black/20">
               <div className="flex items-start gap-3 flex-wrap">
                 <div className="flex gap-1.5">
                   {animal.destaque && (
-                    <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
-                      Destaque
+                    <span className="bg-yellow-400 text-yellow-900 text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded">
+                      ★ Destaque
                     </span>
                   )}
-                  <span className="bg-verde-claro text-verde-escuro text-xs font-bold px-2 py-1 rounded-full">
-                    P.O.
+                  <span className="bg-verde-escuro text-verde-claro text-[10px] font-black uppercase tracking-wide px-2 py-1 rounded">
+                    ✦ P.O. Certificado
                   </span>
                 </div>
               </div>
@@ -142,7 +155,7 @@ export default async function PaginaAnimal({
             </div>
 
             {deps.length > 0 && (
-              <div className="bg-white rounded-2xl p-6">
+              <div className="bg-white rounded-xl p-6 shadow-xl shadow-black/20">
                 <h2 className="font-serif font-bold text-lg text-texto mb-4">
                   DEPs — Diferenças Esperadas na Progênie
                 </h2>
@@ -160,7 +173,7 @@ export default async function PaginaAnimal({
             )}
 
             {animal.descricao && (
-              <div className="bg-white rounded-2xl p-6">
+              <div className="bg-white rounded-xl p-6 shadow-xl shadow-black/20">
                 <h2 className="font-serif font-bold text-lg text-texto mb-3">
                   Descrição
                 </h2>
@@ -175,8 +188,8 @@ export default async function PaginaAnimal({
             <div className="sticky top-24">
               <BlocoContato criador={criador} />
 
-              <div className="mt-4 bg-white rounded-2xl p-4 text-center">
-                <p className="text-xs text-gray-400">
+              <div className="mt-4 bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+                <p className="text-xs text-white/40">
                   O contato é direto com o criador. Não há intermediação de
                   pagamento pela plataforma.
                 </p>
@@ -184,6 +197,7 @@ export default async function PaginaAnimal({
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )
